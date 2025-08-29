@@ -27,6 +27,17 @@ export const useBatteryStore = defineStore('battery', {
 		loading: false,
         // lastTimestamp: null as string | null,
 	}),
+    getters: {
+        processedAcademies: (state) => {
+            return state.academies.map(academy => ({
+                ...academy,
+                devices: academy.devices.map(serialNumber => ({
+                    serialNumber,
+                    batteryHealth: state.batteryHealthBySerial[serialNumber] || 0
+                }))
+            }))
+        }
+    },
 	actions: {
         // TODO fetchDataAfterLastTimestamp()
         // Realistically, this would be used to fetch new data after the last known timestamp,

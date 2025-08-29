@@ -4,10 +4,15 @@ import { env } from '@/config/env';
 const router = createRouter({
   history: createWebHistory(env.VITE_APP_BASE_PATH),
   routes: [
+    // {
+    //   path: '/',
+    //   name: 'Fe Asignment App',
+    //   component: () => import('../views/Home.vue')
+    // }
     {
       path: '/',
-      name: 'Fe Asignment App',
-      component: () => import('../views/Home.vue')
+      name: 'Battery Status',
+      component: () => import('../views/BatteryStatus.vue')
     }
   ]
 });
