@@ -4,13 +4,28 @@ import path from 'path';
 import tailwind from 'tailwindcss';
 import { defineConfig } from 'vite';
 import VueDevTools from 'vite-plugin-vue-devtools';
+import ViteFonts from 'unplugin-fonts/vite';
 
 const BASE_PATH = '/';
 
 export default defineConfig(({ mode }) => {
   return {
     base: BASE_PATH,
-    plugins: [vue(), VueDevTools()],
+    plugins: [
+      vue(), 
+      VueDevTools(),
+      ViteFonts({
+        fontsource: {
+          families: [
+            {
+              name: 'Roboto',
+              weights: [100, 300, 400, 500, 700, 900],
+              styles: ['normal', 'italic'],
+            },
+          ],
+        },
+      }), 
+    ],
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode)
     },
