@@ -14,6 +14,13 @@ export interface LogEntry {
 export interface Academy {
 	id: number
 	devices: string[]
+    unhealthyDeviceCount: number
+}
+
+export interface ProcessedAcademy {
+    id: number
+    devices: { serialNumber: string; averageDailyUsage: number }[]
+    unhealthyDeviceCount: number
 }
 
 type LogsBySerialNumber = Record<string, LogEntry[]>
@@ -23,19 +30,21 @@ export const useBatteryStore = defineStore('battery', {
 		logs: [] as LogEntry[],
 		logsBySerialNumber: {} as LogsBySerialNumber,
 		academies: [] as Academy[],
-		batteryHealthBySerial: {} as Record<string, number>,
+		averageDailyUsageBySerial: {} as Record<string, number>,
 		loading: false,
         // lastTimestamp: null as string | null,
 	}),
     getters: {
         processedAcademies: (state) => {
-            return state.academies.map(academy => ({
-                ...academy,
-                devices: academy.devices.map(serialNumber => ({
-                    serialNumber,
-                    batteryHealth: state.batteryHealthBySerial[serialNumber] || 0
+            return state.academies
+                .map(academy => ({
+                    ...academy,
+                    devices: academy.devices.map(serialNumber => ({
+                        serialNumber,
+                        averageDailyUsage: state.averageDailyUsageBySerial[serialNumber]
+                    }))
                 }))
-            }))
+                .sort((a, b) => b.unhealthyDeviceCount - a.unhealthyDeviceCount) as ProcessedAcademy[]
         }
     },
 	actions: {
@@ -63,17 +72,23 @@ export const useBatteryStore = defineStore('battery', {
                     academyDeviceMap[log.academyId] = new Set()
 				academyDeviceMap[log.academyId].add(log.serialNumber)
 			}
-
 			this.logsBySerialNumber = logsBySerialNumber
-			this.academies = Object.entries(academyDeviceMap).map(([academyId, devices]) => ({
-				id: Number(academyId),
-				devices: Array.from(devices),
-			}))
 
-			this.batteryHealthBySerial = Object.keys(logsBySerialNumber).reduce((acc, serial) => {
+            // Calculate averageDailyUsage for each device
+			this.averageDailyUsageBySerial = Object.keys(logsBySerialNumber).reduce((acc, serial) => {
 				acc[serial] = 0 // placeholder value
 				return acc
 			}, {})
+
+            // Merge academy data with its' devices' averageDailyUsage and calculate unhealthyDeviceCount
+			this.academies = Object.entries(academyDeviceMap).map(([academyId, devices]) => {
+                const devicesArr = Array.from(devices)
+                return {
+                    id: Number(academyId),
+                    devices: devicesArr,
+                    unhealthyDeviceCount: devicesArr.filter(serial => this.averageDailyUsageBySerial[serial] >= 30).length
+                }
+			})
 		},
 	},
 })
