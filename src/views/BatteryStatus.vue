@@ -7,10 +7,14 @@
             <v-card-text>
                 <v-btn class="mb-2" 
                     @click="batteryStore.fetchAllData" 
-                    :loading="batteryStore.loading" text="Refresh Data" />
+                    :loading="batteryStore.loading" 
+                    text="Refresh Data" />
                     
-                <v-expansion-panels>
-                    <v-expansion-panel v-for="academy in batteryStore.processedAcademies" :key="academy.id">
+                <v-expansion-panels
+                        :disabled="batteryStore.loading">
+                    <v-expansion-panel 
+                        v-for="academy in batteryStore.processedAcademies" 
+                        :key="academy.id">
                         <v-expansion-panel-title>
                             <v-row no-gutters>
                                 <v-col class="d-flex justify-start" cols="4">
@@ -25,6 +29,7 @@
                         <v-expansion-panel-text>
                             <v-data-table
                                 :items="academy.devices"
+                                :headers="headers"
                                 hide-default-footer>
 
                                 <template v-slot:item.serialNumber="{ value }">
@@ -54,6 +59,11 @@
 import { useBatteryStore } from '@/stores/battery'
 import { onMounted } from 'vue'
 const batteryStore = useBatteryStore()
+
+const headers = [
+    { title: 'Serial Number', value: 'serialNumber' },
+    { title: 'Average Daily Usage (%)', value: 'averageDailyUsage' }
+]
 
 const batteryIcon = (level: number | null) => {
     if (level === null) return 'mdi-battery-unknown'
