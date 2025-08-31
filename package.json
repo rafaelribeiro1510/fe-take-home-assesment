@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "test": "vitest",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "build-only": "vite build",
@@ -25,7 +26,6 @@
     "element-plus": "^2.9.2",
     "jsencrypt": "^3.3.2",
     "lucide-vue-next": "^0.428.0",
-    "pinia": "^2.3.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.2.5",
     "query-string": "^9.1.1",
@@ -53,10 +53,12 @@
     "@vitejs/plugin-vue-jsx": "^4.1.1",
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^14.2.0",
+    "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.5.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.17.0",
     "eslint-plugin-vue": "^9.32.0",
+    "pinia": "^3.0.3",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
     "tailwindcss": "^3.4.17",
@@ -65,6 +67,7 @@
     "unplugin-vue-components": "^0.27.5",
     "vite": "^6.0.7",
     "vite-plugin-vue-devtools": "^7.6.8",
+    "vitest": "^3.2.4",
     "vue-tsc": "^2.2.0"
   }
 }
