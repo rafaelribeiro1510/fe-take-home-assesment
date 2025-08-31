@@ -72,8 +72,6 @@ export const useBatteryStore = defineStore('battery', {
 			const auxiliaryDataPerDevice: Record<string, AuxiliaryData> = {}
 
 			for (const log of this.logs) {
-				// if (log.serialNumber !== '1805C67HD02259') continue
-				// if (log.serialNumber !== 'TT-C67ML-A-0001-02522') continue
 
 				// This log's device will now be marked as belonging to this log's academy
 				if (!academyDeviceMap[log.academyId]) 
@@ -96,9 +94,6 @@ export const useBatteryStore = defineStore('battery', {
 					const batteryDifference = auxiliaryDataPerDevice[log.serialNumber].lastRecordedBattery - batteryLevel
 					const timeDifference = (timestamp.getTime() - auxiliaryDataPerDevice[log.serialNumber].lastRecordedTimestamp.getTime())
 
-					// console.log(auxiliaryDataPerDevice[log.serialNumber].lastRecordedTimestamp, timestamp, timeDifference / (1000 * 60 * 60))
-					// console.log(batteryDifference, batteryLevel)
-
 					// If this log is from before last registered timestamp, ignore it
 					if (timeDifference > 0){
 
@@ -114,7 +109,6 @@ export const useBatteryStore = defineStore('battery', {
 						auxiliaryDataPerDevice[log.serialNumber].lastRecordedTimestamp = timestamp
 					}
 				}
-				// console.log(auxiliaryDataPerDevice[log.serialNumber].totalSpentBatteryPercentage, auxiliaryDataPerDevice[log.serialNumber].totalPassedHours, timestamp)
 			}
 
 			// Cache in store state (will be useful for futurely implemented fetchDataAfterLastTimestamp)
@@ -127,7 +121,6 @@ export const useBatteryStore = defineStore('battery', {
 			}, {} as Record<string, number | null>)
 
 			// Merge academy data with its' devices' averageDailyUsage and calculate unhealthyDeviceCount
-			// console.log(academyDeviceMap)
 			this.academies = Object.entries(academyDeviceMap).map(([academyId, devices]) => {
 				const devicesArr = Array.from(devices)
 				return {
