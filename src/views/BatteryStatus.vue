@@ -42,7 +42,7 @@
 
                                 <template v-slot:item.averageDailyUsage="{ value }">
                                     <div :style="{'color': batteryTextColor(value)}">
-                                        <span>{{ value === null ? 'Unknown' : value }}</span>
+                                        <span>{{ value === null ? 'Unknown' : (value).toFixed(1) }}</span>
                                         <v-icon :icon="batteryIcon(value)" end />
                                     </div>
                                 </template>
@@ -68,15 +68,16 @@ const headers = [
 const batteryIcon = (level: number | null) => {
     if (level === null) return 'mdi-battery-unknown'
     const roundedLevel = Math.floor(level / 10) * 10
-    if (roundedLevel >= 30) return 'mdi-battery-remove-outline'
-    else if (roundedLevel < 20) return 'mdi-battery-check'
+
+    if (roundedLevel < 25) return 'mdi-battery-check'
+    else if (roundedLevel < 30) return 'mdi-battery-alert-variant-outline'
+    else return 'mdi-battery-remove-outline'
 }
 const batteryTextColor = (level: number | null) => {
     if (level === null) return 'grey'
     const roundedLevel = Math.floor(level / 10) * 10
-    if (roundedLevel < 15) return 'green'
-    else if (roundedLevel < 20) return 'yellow'
-    else if (roundedLevel < 25) return 'orange'
+    if (roundedLevel < 25) return 'green'
+    else if (roundedLevel < 30) return 'orange'
     else return 'red'
 }
 

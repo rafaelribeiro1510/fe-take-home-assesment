@@ -27,7 +27,7 @@ interface AuxiliaryData {
 	lastRecordedBattery: number
 	lastRecordedTimestamp: Date
 
-	totalSpentBattery: number
+	totalSpentBatteryPercentage: number
 	totalPassedHours: number
 }
 
@@ -71,39 +71,49 @@ export const useBatteryStore = defineStore('battery', {
 			const auxiliaryDataPerDevice: Record<string, AuxiliaryData> = {}
 
 			for (const log of this.logs) {
-				const batteryLevel = log.batteryLevel
-				const timestamp = new Date(log.timestamp)
+				// if (log.serialNumber !== '1805C67HD02259') continue
+				// if (log.serialNumber !== 'TT-C67ML-A-0001-02522') continue
 
-				// First log for this serialNumber
-				if (!auxiliaryDataPerDevice[log.serialNumber]) 
-					auxiliaryDataPerDevice[log.serialNumber] = {
-						lastRecordedBattery: batteryLevel,
-						lastRecordedTimestamp: timestamp,
-						totalSpentBattery: 0,
-						totalPassedHours: 0
-				}
-				else {
-					const batteryDifference = auxiliaryDataPerDevice[log.serialNumber].lastRecordedBattery - batteryLevel
-					const timeDifference = (auxiliaryDataPerDevice[log.serialNumber].lastRecordedTimestamp.getTime() - timestamp.getTime()) / 1000 / 60 / 60 // convert to hours
-
-					// If this log is from before last registered timestamp, ignore it
-					if (timeDifference < 0) break
-
-					// If this log shows battery decrease from previous,
-					// increment spent battery and passed time since last log
-					if (batteryDifference > 0) {
-						auxiliaryDataPerDevice[log.serialNumber].totalSpentBattery += batteryDifference
-						auxiliaryDataPerDevice[log.serialNumber].totalPassedHours += timeDifference
-					}
-
-					// Then, update last recorded values
-					auxiliaryDataPerDevice[log.serialNumber].lastRecordedBattery = batteryLevel
-					auxiliaryDataPerDevice[log.serialNumber].lastRecordedTimestamp = timestamp
-				}
-
+				// This log's device will now be marked as belonging to this log's academy
 				if (!academyDeviceMap[log.academyId]) 
 					academyDeviceMap[log.academyId] = new Set()
 				academyDeviceMap[log.academyId].add(log.serialNumber)
+
+				const batteryLevel = log.batteryLevel * 100
+				const timestamp = new Date(log.timestamp)
+
+				// First log for this serialNumber
+				if (!auxiliaryDataPerDevice[log.serialNumber]) {
+					auxiliaryDataPerDevice[log.serialNumber] = {
+						lastRecordedBattery: batteryLevel,
+						lastRecordedTimestamp: timestamp,
+						totalSpentBatteryPercentage: 0,
+						totalPassedHours: 0
+					}
+				}
+				else {
+					const batteryDifference = auxiliaryDataPerDevice[log.serialNumber].lastRecordedBattery - batteryLevel
+					const timeDifference = (timestamp.getTime() - auxiliaryDataPerDevice[log.serialNumber].lastRecordedTimestamp.getTime())
+
+					// console.log(auxiliaryDataPerDevice[log.serialNumber].lastRecordedTimestamp, timestamp, timeDifference / (1000 * 60 * 60))
+					// console.log(batteryDifference, batteryLevel)
+
+					// If this log is from before last registered timestamp, ignore it
+					if (timeDifference > 0){
+
+						// If this log shows battery decrease from previous,
+						// increment spent battery and passed time since last log
+						if (batteryDifference >= 0) {
+							auxiliaryDataPerDevice[log.serialNumber].totalSpentBatteryPercentage += batteryDifference
+							auxiliaryDataPerDevice[log.serialNumber].totalPassedHours += (timeDifference / (1000 * 60 * 60)) // convert to hours
+						}
+
+						// Then, update last recorded values
+						auxiliaryDataPerDevice[log.serialNumber].lastRecordedBattery = batteryLevel
+						auxiliaryDataPerDevice[log.serialNumber].lastRecordedTimestamp = timestamp
+					}
+				}
+				// console.log(auxiliaryDataPerDevice[log.serialNumber].totalSpentBatteryPercentage, auxiliaryDataPerDevice[log.serialNumber].totalPassedHours, timestamp)
 			}
 
 			// Cache in store state (will be useful for futurely implemented fetchDataAfterLastTimestamp)
@@ -111,11 +121,12 @@ export const useBatteryStore = defineStore('battery', {
 
 			// Calculate averageDailyUsage for each device
 			this.averageDailyUsagePerDevice = Object.entries(auxiliaryDataPerDevice).reduce((acc, [serial, data]) => {
-				acc[serial] = data.totalPassedHours > 0 ? data.totalSpentBattery / data.totalPassedHours : null
+				acc[serial] = data.totalPassedHours > 0 ? (data.totalSpentBatteryPercentage * 24 / data.totalPassedHours) : null
 				return acc
-			}, {} as Record<string, number>)
+			}, {} as Record<string, number | null>)
 
 			// Merge academy data with its' devices' averageDailyUsage and calculate unhealthyDeviceCount
+			// console.log(academyDeviceMap)
 			this.academies = Object.entries(academyDeviceMap).map(([academyId, devices]) => {
 				const devicesArr = Array.from(devices)
 				return {

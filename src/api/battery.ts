@@ -6,5 +6,6 @@ import api from '@/services/api';
 // separate functions for each "endpoint" (or data entity)
 export async function getAllData() {
 	const response = await api.get('/battery.json');
+	// const response = await api.get('/problem_statement.json');
 	return response.data;
 }
