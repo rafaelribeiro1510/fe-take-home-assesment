@@ -21,6 +21,7 @@ export interface ProcessedAcademy {
 	id: number
 	devices: { serialNumber: string; averageDailyUsage: number }[]
 	unhealthyDeviceCount: number
+	unknownDeviceCount: number
 }
 
 interface AuxiliaryData {
@@ -132,7 +133,8 @@ export const useBatteryStore = defineStore('battery', {
 				return {
 					id: Number(academyId),
 					devices: devicesArr,
-					unhealthyDeviceCount: devicesArr.filter(serial => this.averageDailyUsagePerDevice[serial] !== null && this.averageDailyUsagePerDevice[serial] >= 30).length
+					unhealthyDeviceCount: devicesArr.filter(serial => this.averageDailyUsagePerDevice[serial] !== null && this.averageDailyUsagePerDevice[serial] >= 30).length,
+					unknownDeviceCount: devicesArr.filter(serial => this.averageDailyUsagePerDevice[serial] === null).length
 				}
 			})
 		},

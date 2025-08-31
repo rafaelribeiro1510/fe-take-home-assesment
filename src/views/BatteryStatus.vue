@@ -22,7 +22,7 @@
                                     {{ academy.id }}
                                 </v-col>
                                 <v-col class="d-flex justify-start text-medium-emphasis" cols="8">
-                                    Unhealthy devices: {{ academy.unhealthyDeviceCount }} out of {{ academy.devices.length }}
+                                    {{ academySubtitle(academy) }}
                                 </v-col>
                             </v-row>
                         </v-expansion-panel-title>
@@ -30,6 +30,7 @@
                             <v-data-table
                                 :items="academy.devices"
                                 :headers="headers"
+                                items-per-page="-1"
                                 hide-default-footer>
 
                                 <template v-slot:item.serialNumber="{ value }">
@@ -42,8 +43,8 @@
 
                                 <template v-slot:item.averageDailyUsage="{ value }">
                                     <div :style="{'color': batteryTextColor(value)}">
+                                        <v-icon :icon="batteryIcon(value)" start />
                                         <span>{{ value === null ? 'Unknown' : (value).toFixed(1) }}</span>
-                                        <v-icon :icon="batteryIcon(value)" end />
                                     </div>
                                 </template>
 
@@ -56,7 +57,7 @@
     </v-container>
 </template>
 <script lang="ts" setup>
-import { useBatteryStore } from '@/stores/battery'
+import { useBatteryStore, type ProcessedAcademy } from '@/stores/battery'
 import { onMounted } from 'vue'
 const batteryStore = useBatteryStore()
 
@@ -64,6 +65,10 @@ const headers = [
     { title: 'Serial Number', value: 'serialNumber' },
     { title: 'Average Daily Usage (%)', value: 'averageDailyUsage' }
 ]
+
+const academySubtitle = (academy: ProcessedAcademy) => {
+    return `Unhealthy devices: ${academy.unhealthyDeviceCount} out of ${academy.devices.length - academy.unknownDeviceCount} ${academy.unknownDeviceCount > 0 ? `(+${academy.unknownDeviceCount} unknown)` : ''}`
+}
 
 const batteryIcon = (level: number | null) => {
     if (level === null) return 'mdi-battery-unknown'
